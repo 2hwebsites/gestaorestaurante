@@ -1,0 +1,55 @@
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Rider / VS / VS Code
+.idea/
+.vs/
+.vscode/
+
+# ASP.NET generated
+wwwroot/lib/
+
+# Logs
+*.log
+logs/
+
+# Dotnet artifacts
+project.lock.json
+project.fragment.lock.json
+.nuget/
+packages/
+
+# Resharper / analyzer caches
+_ReSharper*/
+*.DotSettings.user
+
+# Coverage / test
+TestResult*/
+*.coverage
+*.coveragexml
+*.trx
+
+# Publish profiles
+Properties/PublishProfiles/
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.DS_Store
+
+# Tooling
+*.swp
+*.swo
+
+# Local settings / secrets
+secrets.json
+appsettings.*.local.json
