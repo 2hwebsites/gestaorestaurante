@@ -1,0 +1,25 @@
+@model List<EstoqueLocal.Application.ViewModels.ItemViewModel>
+<h2>Itens</h2>
+<p><a class="btn btn-primary" asp-action="Create">Novo Item</a></p>
+<table class="table table-striped">
+    <thead>
+        <tr><th>Nome</th><th>Categoria</th><th>Unidade</th><th>Inicial</th><th>Consumo</th><th>Ativo</th><th></th></tr>
+    </thead>
+    <tbody>
+    @foreach (var i in Model)
+    {
+        <tr>
+            <td>@i.Nome</td>
+            <td>@i.Categoria</td>
+            <td>@i.Unidade</td>
+            <td>@i.QuantidadeInicial</td>
+            <td>@i.ConsumoMedio</td>
+            <td>@(i.Ativo ? "Sim" : "Não")</td>
+            <td>
+                <a class="btn btn-sm btn-secondary" asp-action="Edit" asp-route-id="@i.Id">Editar</a>
+                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@i.Id">Excluir</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,7 @@
+@{
+    var logo = ViewBag.LogoPath as string ?? "/img/logo.png";
+    var appName = ViewBag.AppName as string ?? "Gestão de Estoque";
+}
+<div class="home-hero">
+    <img src="@logo" alt="@appName" class="home-logo" />
+</div>

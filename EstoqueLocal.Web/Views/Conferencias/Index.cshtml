@@ -1,0 +1,21 @@
+@model List<EstoqueLocal.Application.ViewModels.ConferenciaIndexViewModel>
+<h2>Conferências</h2>
+<p><a class="btn btn-primary" asp-action="Nova">Nova conferência</a></p>
+<div class="table-wrap">
+<table class="table table-app">
+    <thead><tr><th>Título</th><th>Data/Hora</th><th>Ações</th></tr></thead>
+    <tbody>
+    @foreach (var c in Model)
+    {
+        <tr>
+            <td>@c.Titulo</td>
+            <td>@c.CriadoEm.ToString("dd/MM/yyyy HH:mm")</td>
+            <td>
+                <a class="btn btn-sm btn-secondary" asp-action="Edit" asp-route-id="@c.Id">Editar</a>
+                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@c.Id">Excluir</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>

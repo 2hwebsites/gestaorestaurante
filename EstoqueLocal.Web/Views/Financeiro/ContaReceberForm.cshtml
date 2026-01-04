@@ -1,0 +1,38 @@
+@model EstoqueLocal.Application.ViewModels.Finance.ContaReceberCreateViewModel
+@using EstoqueLocal.Domain.Entities.Finance
+<h2>@(Model.Id == 0 ? "Nova Conta a Receber" : "Editar Conta a Receber")</h2>
+<form asp-action="@(Model.Id == 0 ? "ContasAReceber" : "EditarContaAReceber")" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div class="col-md-6">
+        <label class="form-label">Descrição</label>
+        <input asp-for="Descricao" class="form-control" />
+        <span asp-validation-for="Descricao" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Valor</label>
+        <input asp-for="Valor" class="form-control" type="number" step="0.01" />
+        <span asp-validation-for="Valor" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Vencimento</label>
+        <input asp-for="Vencimento" class="form-control" type="date" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Origem</label>
+        <select asp-for="OrigemVenda" class="form-select" asp-items="Html.GetEnumSelectList<OrigemVenda>()"></select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Forma de recebimento</label>
+        <select asp-for="FormaRecebimento" class="form-select" asp-items="Html.GetEnumSelectList<FormaPagamento>()"></select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Observação</label>
+        <input asp-for="Observacao" class="form-control" />
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+        <a class="btn btn-outline-secondary" asp-action="ContasAReceber">Voltar</a>
+    </div>
+</form>
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

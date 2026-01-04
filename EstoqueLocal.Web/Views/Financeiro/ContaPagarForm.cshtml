@@ -1,0 +1,42 @@
+@model EstoqueLocal.Application.ViewModels.Finance.ContaPagarCreateViewModel
+@using EstoqueLocal.Domain.Entities.Finance
+@{
+    await ((Func<Task>)(async () => { await Task.CompletedTask; }))();
+    var categorias = ViewBag.Categorias as SelectList ?? new SelectList(Enumerable.Empty<SelectListItem>());
+}
+<h2>@(Model.Id == 0 ? "Nova Conta a Pagar" : "Editar Conta a Pagar")</h2>
+<form asp-action="@(Model.Id == 0 ? "ContasAPagar" : "EditarContaAPagar")" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div class="col-md-6">
+        <label class="form-label">Descrição</label>
+        <input asp-for="Descricao" class="form-control" />
+        <span asp-validation-for="Descricao" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Categoria</label>
+        <select asp-for="CategoriaFinanceiraId" class="form-select" asp-items="categorias"></select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Valor</label>
+        <input asp-for="Valor" class="form-control" type="number" step="0.01" />
+        <span asp-validation-for="Valor" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Vencimento</label>
+        <input asp-for="Vencimento" class="form-control" type="date" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Alocação de custo</label>
+        <select asp-for="AlocacaoCusto" class="form-select" asp-items="Html.GetEnumSelectList<AlocacaoCusto>()"></select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Observação</label>
+        <input asp-for="Observacao" class="form-control" />
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+        <a class="btn btn-outline-secondary" asp-action="ContasAPagar">Voltar</a>
+    </div>
+</form>
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

@@ -1,0 +1,35 @@
+@model EstoqueLocal.Application.ViewModels.ConferenciaNovaViewModel
+<h2>Editar Conferência</h2>
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ConferenciaId" />
+<div class="table-wrap table-scroll">
+<table class="table table-app align-middle">
+        <thead>
+            <tr><th>Item</th><th>Categoria</th><th>Unidade</th><th>Qtd Atual</th><th>Qtd Contada</th></tr>
+        </thead>
+        <tbody>
+        @for (int i = 0; i < Model.Linhas.Count; i++)
+        {
+            <tr>
+                <td>
+                    @Model.Linhas[i].Nome
+                    <input type="hidden" asp-for="Linhas[i].ItemId" />
+                    <input type="hidden" asp-for="Linhas[i].Nome" />
+                    <input type="hidden" asp-for="Linhas[i].Categoria" />
+                    <input type="hidden" asp-for="Linhas[i].Unidade" />
+                    <input type="hidden" asp-for="Linhas[i].QuantidadeAtual" />
+                </td>
+                <td>@Model.Linhas[i].Categoria</td>
+                <td>@Model.Linhas[i].Unidade</td>
+                <td>@Model.Linhas[i].QuantidadeAtual</td>
+                <td><input asp-for="Linhas[i].QuantidadeContada" class="form-control" type="number" step="0.01" /></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    </div>
+    <button class="btn btn-primary" type="submit">Salvar conferência</button>
+    <a class="btn btn-secondary" asp-action="Index">Voltar</a>
+</form>
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

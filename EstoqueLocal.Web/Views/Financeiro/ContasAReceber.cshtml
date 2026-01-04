@@ -1,0 +1,154 @@
+@model EstoqueLocal.Application.ViewModels.Finance.ContaReceberCreateViewModel
+@using EstoqueLocal.Domain.Entities.Finance
+@{
+    var itens = ViewBag.ItensAReceber as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    int filtroMes = ViewBag.FiltroMes;
+    int filtroAno = ViewBag.FiltroAno;
+    StatusContaReceber? filtroStatus = ViewBag.FiltroStatus as StatusContaReceber?;
+    OrigemVenda? filtroOrigem = ViewBag.FiltroOrigem as OrigemVenda?;
+    decimal totalAberto = ViewBag.TotalAberto ?? 0m;
+    decimal totalRecebido = ViewBag.TotalRecebido ?? 0m;
+}
+<h2>Contas a receber</h2>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-2">
+        <label class="form-label">Mês</label>
+        <input type="number" name="mes" class="form-control" value="@filtroMes" min="1" max="12" />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Ano</label>
+        <input type="number" name="ano" class="form-control" value="@filtroAno" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+            <option value="">Todos</option>
+            @foreach (StatusContaReceber s in Enum.GetValues(typeof(StatusContaReceber)))
+            {
+                <option value="@s" selected="@(filtroStatus == s)">@s</option>
+            }
+            <option value="Atrasada" selected="@(filtroStatus == StatusContaReceber.Atrasada)">Atrasada</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Origem</label>
+        <select name="origem" class="form-select">
+            <option value="">Todas</option>
+            @foreach (OrigemVenda o in Enum.GetValues(typeof(OrigemVenda)))
+            {
+                <option value="@o" selected="@(filtroOrigem == o)">@o</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-outline-secondary w-100" type="submit">Filtrar</button>
+    </div>
+</form>
+
+<form asp-action="ContasAReceber" method="post" class="row g-3 mb-3">
+    @Html.AntiForgeryToken()
+    <div class="col-md-6">
+        <label class="form-label">Descrição</label>
+        <input asp-for="Descricao" class="form-control" />
+        <span asp-validation-for="Descricao" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Valor</label>
+        <input asp-for="Valor" class="form-control" type="number" step="0.01" />
+        <span asp-validation-for="Valor" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Vencimento</label>
+        <input asp-for="Vencimento" class="form-control" type="date" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Origem</label>
+        <select asp-for="OrigemVenda" class="form-select" asp-items="Html.GetEnumSelectList<OrigemVenda>()"></select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Forma de recebimento</label>
+        <select asp-for="FormaRecebimento" class="form-select" asp-items="Html.GetEnumSelectList<FormaPagamento>()"></select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Observação</label>
+        <input asp-for="Observacao" class="form-control" />
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+    </div>
+</form>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted">Total a receber (mês)</div>
+                <div class="fs-4 fw-bold">@totalAberto.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted">Total recebido (mês)</div>
+                <div class="fs-4 fw-bold">@totalRecebido.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-wrap table-scroll">
+<table class="table table-app">
+    <thead>
+        <tr>
+            <th>Descrição</th>
+            <th class="text-end">Valor</th>
+            <th>Vencimento</th>
+            <th>Status</th>
+            <th>Origem</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var c in itens)
+    {
+        <tr>
+            <td>@c.Descricao</td>
+            <td class="text-end">@((decimal)c.Valor).ToString("C")</td>
+            <td>@((DateTime)c.Vencimento).ToString("dd/MM/yyyy")</td>
+            <td>@c.Status</td>
+            <td>@c.OrigemVenda</td>
+            <td>
+                @if (c.PodeEditar)
+                {
+                    <a class="btn btn-sm btn-secondary" asp-action="EditarContaAReceber" asp-route-id="@c.Id">Editar</a>
+                    <form asp-action="MarcarContaRecebida" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@c.Id" />
+                        <select name="forma" class="form-select form-select-sm d-inline-block w-auto">
+                            <option value="">Forma</option>
+                            @foreach (FormaPagamento f in Enum.GetValues(typeof(FormaPagamento)))
+                            {
+                                <option value="@f">@f</option>
+                            }
+                        </select>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="gerarCaixa" value="true" id="rc-@c.Id">
+                            <label class="form-check-label" for="rc-@c.Id">Caixa</label>
+                        </div>
+                        <button class="btn btn-sm btn-success" type="submit">Marcar recebida</button>
+                    </form>
+                }
+                else
+                {
+                    <span class="text-muted">Recebida</span>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

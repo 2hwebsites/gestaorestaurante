@@ -1,0 +1,31 @@
+@model List<EstoqueLocal.Domain.Entities.Finance.CategoriaFinanceira>
+<h2>Categorias Financeiras</h2>
+<p><a class="btn btn-primary" asp-action="CriarCategoria">Nova categoria</a></p>
+<div class="table-wrap">
+<table class="table table-app">
+    <thead>
+        <tr><th>Nome</th><th>Tipo padrão</th><th>Ativo</th><th></th></tr>
+    </thead>
+    <tbody>
+    @foreach (var c in Model)
+    {
+        <tr>
+            <td>@c.Nome</td>
+            <td>@(c.TipoPadrao?.ToString() ?? "-")</td>
+            <td>@(c.Ativo ? "Sim" : "Não")</td>
+            <td>
+                <a class="btn btn-sm btn-secondary" asp-action="EditarCategoria" asp-route-id="@c.Id">Editar</a>
+                @if (c.Ativo)
+                {
+                    <form asp-action="DesativarCategoria" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@c.Id" />
+                        <button class="btn btn-sm btn-danger" type="submit">Desativar</button>
+                    </form>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>

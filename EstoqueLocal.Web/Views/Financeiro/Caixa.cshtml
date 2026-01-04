@@ -1,0 +1,118 @@
+@model EstoqueLocal.Application.ViewModels.Finance.CaixaLancamentoViewModel
+@using EstoqueLocal.Domain.Entities.Finance
+@{
+    await ((Func<Task>)(async () => { await Task.CompletedTask; }))();
+    var categorias = ViewBag.Categorias as SelectList ?? new SelectList(Enumerable.Empty<SelectListItem>());
+    var lancamentos = ViewBag.Lancamentos as List<LancamentoCaixa> ?? new();
+    var cards = ViewBag.Cards is ValueTuple<decimal, decimal, decimal> c ? c : (0m, 0m, 0m);
+}
+<h2>Caixa diário</h2>
+<form asp-action="Caixa" method="post" class="row g-3 mb-3">
+    @Html.AntiForgeryToken()
+    <div class="col-md-2">
+        <label class="form-label">Tipo</label>
+        <select asp-for="Tipo" class="form-select">
+            <option value="Entrada">Entrada</option>
+            <option value="Saida">Saída</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Origem (entradas)</label>
+        <select asp-for="OrigemVenda" class="form-select">
+            <option value="">--</option>
+            @foreach (OrigemVenda o in Enum.GetValues(typeof(OrigemVenda)))
+            {
+                <option value="@o">@o</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Categoria</label>
+        <select asp-for="CategoriaFinanceiraId" class="form-select" asp-items="categorias"></select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Descrição</label>
+        <input asp-for="Descricao" class="form-control" />
+        <span asp-validation-for="Descricao" class="text-danger"></span>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Valor</label>
+        <input asp-for="Valor" class="form-control" type="number" step="0.01" />
+        <span asp-validation-for="Valor" class="text-danger"></span>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Pagamento</label>
+        <select asp-for="FormaPagamento" class="form-select">
+            @foreach (FormaPagamento f in Enum.GetValues(typeof(FormaPagamento)))
+            {
+                <option value="@f">@f</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-5">
+        <label class="form-label">Observação</label>
+        <input asp-for="Observacao" class="form-control" />
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+    </div>
+</form>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted">Entradas (mês)</div>
+                <div class="fs-4 fw-bold">@cards.Item1.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted">Saídas (mês)</div>
+                <div class="fs-4 fw-bold">@cards.Item2.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted">Saldo (mês)</div>
+                <div class="fs-4 fw-bold">@cards.Item3.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-wrap table-scroll">
+<table class="table table-app">
+    <thead>
+        <tr>
+            <th>Data/Hora</th>
+            <th>Tipo</th>
+            <th>Origem</th>
+            <th>Categoria</th>
+            <th>Descrição</th>
+            <th class="text-end">Valor</th>
+            <th>Pagamento</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var l in lancamentos)
+    {
+        <tr>
+            <td>@l.DataHora.ToString("dd/MM/yyyy HH:mm")</td>
+            <td>@l.Tipo</td>
+            <td>@(l.OrigemVenda.HasValue ? l.OrigemVenda.ToString() : "-")</td>
+            <td>@l.CategoriaFinanceira.Nome</td>
+            <td>@l.Descricao</td>
+            <td class="text-end">@l.Valor.ToString("C")</td>
+            <td>@l.FormaPagamento</td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

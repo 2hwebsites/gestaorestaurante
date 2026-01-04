@@ -1,0 +1,13 @@
+@model EstoqueLocal.Domain.Entities.SaidaConsumo
+<h2>Excluir Saída</h2>
+<div class="alert alert-warning">Confirma excluir a saída do item <strong>@Model.Item.Nome</strong>?</div>
+<dl class="row">
+    <dt class="col-sm-3">Quantidade</dt><dd class="col-sm-9">@Model.Quantidade</dd>
+    <dt class="col-sm-3">Motivo</dt><dd class="col-sm-9">@Model.Motivo</dd>
+</dl>
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button class="btn btn-danger" type="submit">Excluir</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</form>

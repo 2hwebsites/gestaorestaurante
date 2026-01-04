@@ -1,0 +1,24 @@
+@model EstoqueLocal.Application.ViewModels.SaidaCreateViewModel
+<h2>Editar Saída</h2>
+<form asp-action="Edit" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div class="col-md-4">
+        <label class="form-label">Item</label>
+        <select asp-for="ItemId" class="form-select" asp-items="ViewBag.Itens"></select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Quantidade</label>
+        <input asp-for="Quantidade" class="form-control" type="number" step="0.01" />
+        <span asp-validation-for="Quantidade" class="text-danger"></span>
+    </div>
+    <div class="col-md-5">
+        <label class="form-label">Motivo</label>
+        <input asp-for="Motivo" class="form-control" />
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+        <a class="btn btn-secondary" asp-action="Index">Voltar</a>
+    </div>
+</form>
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

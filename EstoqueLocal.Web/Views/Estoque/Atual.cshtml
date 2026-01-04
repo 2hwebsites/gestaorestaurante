@@ -1,0 +1,29 @@
+@model List<EstoqueLocal.Application.ViewModels.EstoqueAtualItemViewModel>
+<h2>Estoque Atual</h2>
+<div class="table-wrap table-scroll">
+<table class="table table-app align-middle">
+    <thead>
+        <tr>
+            <th>Item</th><th>Categoria</th><th>Unidade</th>
+            <th>Qtd Inicial</th><th>Qtd Atual</th><th>Consumo Médio</th>
+            <th>Qtd Contagem</th><th>Dt Últ Contagem</th><th>Diferença</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Nome</td>
+            <td>@item.Categoria</td>
+            <td>@item.Unidade</td>
+            <td>@item.QuantidadeInicial</td>
+            <td><strong>@item.QuantidadeAtual</strong></td>
+            <td>@item.ConsumoMedio</td>
+            <td>@item.QuantidadeContagem</td>
+            <td>@(item.DataUltimaContagem.HasValue ? item.DataUltimaContagem.Value.ToString("dd/MM/yyyy HH:mm") : "NA")</td>
+            <td>@(item.QuantidadeContagem <= 0 ? "NA" : item.DiferencaContagem)</td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>

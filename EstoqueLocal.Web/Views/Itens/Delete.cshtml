@@ -1,0 +1,9 @@
+@model EstoqueLocal.Application.ViewModels.ItemViewModel
+<h2>Excluir Item</h2>
+<div class="alert alert-warning">Confirma excluir o item <strong>@Model.Nome</strong>?</div>
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <button class="btn btn-danger" type="submit">Excluir</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</form>
