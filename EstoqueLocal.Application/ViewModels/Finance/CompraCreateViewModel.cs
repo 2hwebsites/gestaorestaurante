@@ -23,4 +23,6 @@ public class CompraCreateViewModel
     public int CategoriaFinanceiraId { get; set; }
 
     public string? Observacao { get; set; }
+
+    public bool GerarLancamentoCaixa { get; set; }
 }
