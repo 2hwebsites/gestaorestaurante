@@ -2,7 +2,6 @@
 @using EstoqueLocal.Domain.Entities.Finance
 @{
     await ((Func<Task>)(async () => { await Task.CompletedTask; }))();
-    var categorias = ViewBag.Categorias as SelectList ?? new SelectList(Enumerable.Empty<SelectListItem>());
     var lancamentos = ViewBag.Lancamentos as List<LancamentoCaixa> ?? new();
     var cards = ViewBag.Cards is ValueTuple<decimal, decimal, decimal> c ? c : (0m, 0m, 0m);
 }
@@ -28,7 +27,10 @@
     </div>
     <div class="col-md-4">
         <label class="form-label">Categoria</label>
-        <select asp-for="CategoriaFinanceiraId" class="form-select" asp-items="categorias"></select>
+        <select asp-for="CategoriaFinanceiraId" class="form-select" asp-items="ViewBag.Categorias">
+            <option value="">Selecione...</option>
+        </select>
+        <span asp-validation-for="CategoriaFinanceiraId" class="text-danger"></span>
     </div>
     <div class="col-md-3">
         <label class="form-label">Descrição</label>

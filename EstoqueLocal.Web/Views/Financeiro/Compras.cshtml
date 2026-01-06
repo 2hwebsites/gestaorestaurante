@@ -5,20 +5,29 @@
     var compras = ViewBag.Compras as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
     int filtroMes = ViewBag.FiltroMes;
     int filtroAno = ViewBag.FiltroAno;
-    AlocacaoCusto? filtroAloc = ViewBag.FiltroAlocacao as AlocacaoCusto?;
+    AlocacaoCusto? filtroAloc = ViewBag.FiltroAlocacao is AlocacaoCusto al ? al : (AlocacaoCusto?)null;
+    string filtroFornecedor = ViewBag.FiltroFornecedor as string ?? string.Empty;
+    int? filtroCategoria = ViewBag.FiltroCategoria is int fc ? fc : (int?)null;
+    var totais = ViewBag.Totais;
+    decimal totalGeral = totais?.Geral ?? 0m;
+    decimal totalBuffet = totais?.BuffetFeijoada ?? 0m;
+    decimal totalALaCarte = totais?.ALaCarte ?? 0m;
+    decimal totalBebidas = totais?.Bebidas ?? 0m;
+    decimal totalGeralAloc = totais?.GeralOperacional ?? 0m;
+    decimal totalAdministrativo = totais?.Administrativo ?? 0m;
 }
 <h2>Compras / Fornecedores</h2>
 
 <form method="get" class="row g-2 mb-3">
-    <div class="col-md-2">
+    <div class="col-6 col-md-2">
         <label class="form-label">Mês</label>
         <input type="number" name="mes" class="form-control" value="@filtroMes" min="1" max="12" />
     </div>
-    <div class="col-md-2">
+    <div class="col-6 col-md-2">
         <label class="form-label">Ano</label>
         <input type="number" name="ano" class="form-control" value="@filtroAno" />
     </div>
-    <div class="col-md-3">
+    <div class="col-12 col-md-3">
         <label class="form-label">Alocação</label>
         <select name="alocacao" class="form-select">
             <option value="">Todas</option>
@@ -28,10 +37,75 @@
             }
         </select>
     </div>
+    <div class="col-12 col-md-3">
+        <label class="form-label">Fornecedor</label>
+        <input type="text" name="fornecedor" class="form-control" value="@filtroFornecedor" placeholder="Buscar fornecedor" />
+    </div>
+    <div class="col-12 col-md-3">
+        <label class="form-label">Categoria</label>
+        <select name="categoriaId" class="form-select">
+            <option value="">Todas</option>
+            @foreach (var cat in categorias)
+            {
+                <option value="@cat.Value" selected="@(filtroCategoria.HasValue && cat.Value == filtroCategoria.ToString())">@cat.Text</option>
+            }
+        </select>
+    </div>
     <div class="col-md-2 d-flex align-items-end">
         <button class="btn btn-outline-secondary w-100" type="submit">Filtrar</button>
     </div>
 </form>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total geral</div>
+                <div class="fw-semibold fs-5">@totalGeral.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total BuffetFeijoada</div>
+                <div class="fw-semibold fs-5">@totalBuffet.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total À La Carte</div>
+                <div class="fw-semibold fs-5">@totalALaCarte.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total Bebidas</div>
+                <div class="fw-semibold fs-5">@totalBebidas.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total Geral (aloc.)</div>
+                <div class="fw-semibold fs-5">@totalGeralAloc.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total Administrativo</div>
+                <div class="fw-semibold fs-5">@totalAdministrativo.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <form asp-action="CriarCompra" method="post" class="row g-3 mb-3">
     @Html.AntiForgeryToken()
@@ -61,39 +135,45 @@
         <label class="form-label">Observação</label>
         <input asp-for="Observacao" class="form-control" />
     </div>
+    <div class="col-md-3 d-flex align-items-center">
+        <div class="form-check mt-3">
+            <input class="form-check-input" asp-for="GerarLancamentoCaixa" />
+            <label class="form-check-label" asp-for="GerarLancamentoCaixa">Gerar lançamento no Caixa</label>
+        </div>
+    </div>
     <div class="col-12">
         <button class="btn btn-primary" type="submit">Registrar compra</button>
     </div>
 </form>
 
 <div class="table-wrap table-scroll">
-<table class="table table-app">
-    <thead>
-        <tr>
-            <th>Data/Hora</th>
-            <th>Fornecedor</th>
-            <th class="text-end">Valor</th>
-            <th>Forma</th>
-            <th>Alocação</th>
-            <th>Categoria</th>
-            <th>Obs</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var c in compras)
-    {
-        <tr>
-            <td>@((DateTime)c.DataHora).ToString("dd/MM/yyyy HH:mm")</td>
-            <td>@c.Fornecedor</td>
-            <td class="text-end">@((decimal)c.ValorTotal).ToString("C")</td>
-            <td>@c.FormaPagamento</td>
-            <td>@c.AlocacaoCusto</td>
-            <td>@c.Categoria</td>
-            <td>@c.Observacao</td>
-        </tr>
-    }
-    </tbody>
-</table>
+    <table class="table table-app">
+        <thead>
+            <tr>
+                <th>Data/Hora</th>
+                <th>Fornecedor</th>
+                <th class="text-end">Valor</th>
+                <th>Forma</th>
+                <th>Alocação</th>
+                <th>Categoria</th>
+                <th>Obs</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in compras)
+        {
+            <tr>
+                <td>@((DateTime)c.DataHora).ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@c.Fornecedor</td>
+                <td class="text-end">@((decimal)c.ValorTotal).ToString("C")</td>
+                <td>@c.FormaPagamento</td>
+                <td>@c.AlocacaoCusto</td>
+                <td>@c.Categoria</td>
+                <td>@c.Observacao</td>
+            </tr>
+        }
+        </tbody>
+    </table>
 </div>
 
 @section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

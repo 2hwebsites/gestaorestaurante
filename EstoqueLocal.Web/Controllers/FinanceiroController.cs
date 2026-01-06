@@ -12,8 +12,9 @@ public class FinanceiroController : Controller
     private readonly AppDbContext _ctx;
     public FinanceiroController(AppDbContext ctx) => _ctx = ctx;
 
-    public IActionResult Caixa()
+    public async Task<IActionResult> Caixa()
     {
+        await PrepararDadosCaixa();
         return View(new CaixaLancamentoViewModel());
     }
 
@@ -23,10 +24,7 @@ public class FinanceiroController : Controller
     {
         if (!ModelState.IsValid)
         {
-            await PopularViewBags();
-            var (list, cards) = await ObterCaixaDoMes();
-            ViewBag.Lancamentos = list;
-            ViewBag.Cards = cards;
+            await PrepararDadosCaixa(vm.CategoriaFinanceiraId);
             return View(vm);
         }
 
@@ -50,13 +48,21 @@ public class FinanceiroController : Controller
         return RedirectToAction(nameof(Caixa));
     }
 
-    private async Task PopularViewBags()
+    private async Task PopularViewBags(int? categoriaSelecionada = null)
     {
         var categorias = await _ctx.CategoriasFinanceiras
             .Where(c => c.Ativo)
             .OrderBy(c => c.Nome)
             .ToListAsync();
-        ViewBag.Categorias = new SelectList(categorias, "Id", "Nome");
+        ViewBag.Categorias = new SelectList(categorias, "Id", "Nome", categoriaSelecionada);
+    }
+
+    private async Task PrepararDadosCaixa(int? categoriaSelecionada = null)
+    {
+        await PopularViewBags(categoriaSelecionada);
+        var (list, cards) = await ObterCaixaDoMes();
+        ViewBag.Lancamentos = list;
+        ViewBag.Cards = cards;
     }
 
     private async Task<(List<LancamentoCaixa> list, (decimal entrada, decimal saida, decimal saldo) cards)> ObterCaixaDoMes()
@@ -488,36 +494,10 @@ public class FinanceiroController : Controller
         }
         return RedirectToAction(nameof(ContasAReceber));
     }
-    public async Task<IActionResult> Compras(int? mes, int? ano, AlocacaoCusto? alocacao)
+
+    public async Task<IActionResult> Compras(int? mes, int? ano, AlocacaoCusto? alocacao, string? fornecedor, int? categoriaId)
     {
-        await PopularViewBags();
-        var filtroMes = mes ?? DateTime.Now.Month;
-        var filtroAno = ano ?? DateTime.Now.Year;
-
-        var query = _ctx.Compras
-            .Include(c => c.CategoriaFinanceira)
-            .Where(c => c.DataHora.Month == filtroMes && c.DataHora.Year == filtroAno);
-
-        if (alocacao.HasValue)
-            query = query.Where(c => c.AlocacaoCusto == alocacao.Value);
-
-        var list = await query.OrderByDescending(c => c.DataHora).ToListAsync();
-
-        ViewBag.FiltroMes = filtroMes;
-        ViewBag.FiltroAno = filtroAno;
-        ViewBag.FiltroAlocacao = alocacao;
-        ViewBag.Compras = list.Select(c => new
-        {
-            c.Id,
-            c.DataHora,
-            c.Fornecedor,
-            c.ValorTotal,
-            c.FormaPagamento,
-            c.AlocacaoCusto,
-            c.Observacao,
-            Categoria = c.CategoriaFinanceira.Nome
-        }).ToList();
-
+        await PrepararComprasViewData(mes, ano, alocacao, fornecedor, categoriaId);
         return View(new CompraCreateViewModel());
     }
 
@@ -527,8 +507,8 @@ public class FinanceiroController : Controller
     {
         if (!ModelState.IsValid)
         {
-            await PopularViewBags();
-            return await Compras(null, null, null);
+            await PrepararComprasViewData(null, null, null, null, null);
+            return View("Compras", vm);
         }
         var now = DateTime.Now;
         var compra = new Compra
@@ -543,8 +523,98 @@ public class FinanceiroController : Controller
         };
         _ctx.Compras.Add(compra);
         await _ctx.SaveChangesAsync();
+
+        if (vm.GerarLancamentoCaixa)
+        {
+            var obs = $"Alocação: {vm.AlocacaoCusto}";
+            if (!string.IsNullOrWhiteSpace(vm.Observacao))
+            {
+                obs += $" | {vm.Observacao}";
+            }
+
+            var lanc = new LancamentoCaixa
+            {
+                DataHora = now,
+                Ano = now.Year,
+                Mes = now.Month,
+                Tipo = TipoLancamento.Saida,
+                CategoriaFinanceiraId = vm.CategoriaFinanceiraId,
+                Descricao = $"Compra: {vm.Fornecedor}",
+                Valor = vm.ValorTotal,
+                FormaPagamento = vm.FormaPagamento,
+                Observacao = obs
+            };
+            _ctx.LancamentosCaixa.Add(lanc);
+            await _ctx.SaveChangesAsync();
+            compra.LancamentoCaixaId = lanc.Id;
+            await _ctx.SaveChangesAsync();
+        }
+
         TempData["Success"] = "Compra registrada.";
         return RedirectToAction(nameof(Compras));
     }
+
+    private async Task PrepararComprasViewData(int? mes, int? ano, AlocacaoCusto? alocacao, string? fornecedor, int? categoriaId)
+    {
+        var filtroMes = mes ?? DateTime.Now.Month;
+        var filtroAno = ano ?? DateTime.Now.Year;
+        var filtroFornecedor = fornecedor?.Trim() ?? string.Empty;
+
+        await PopularViewBags(categoriaId);
+
+        var query = _ctx.Compras
+            .Include(c => c.CategoriaFinanceira)
+            .Where(c => c.DataHora.Month == filtroMes && c.DataHora.Year == filtroAno);
+
+        if (alocacao.HasValue)
+            query = query.Where(c => c.AlocacaoCusto == alocacao.Value);
+
+        if (categoriaId.HasValue)
+            query = query.Where(c => c.CategoriaFinanceiraId == categoriaId.Value);
+
+        if (!string.IsNullOrWhiteSpace(filtroFornecedor))
+        {
+            var term = filtroFornecedor.ToLower();
+            query = query.Where(c => c.Fornecedor.ToLower().Contains(term));
+        }
+
+        var list = await query.OrderByDescending(c => c.DataHora).ToListAsync();
+
+        var totalBuffet = list.Where(c => c.AlocacaoCusto == AlocacaoCusto.BuffetFeijoada).Sum(c => c.ValorTotal);
+        var totalALaCarte = list.Where(c => c.AlocacaoCusto == AlocacaoCusto.ALaCarte).Sum(c => c.ValorTotal);
+        var totalBebidas = list.Where(c => c.AlocacaoCusto == AlocacaoCusto.Bebidas).Sum(c => c.ValorTotal);
+        var totalGeralAloc = list.Where(c => c.AlocacaoCusto == AlocacaoCusto.Geral).Sum(c => c.ValorTotal);
+        var totalAdministrativo = list.Where(c => c.AlocacaoCusto == AlocacaoCusto.Administrativo).Sum(c => c.ValorTotal);
+        var totalGeral = list.Sum(c => c.ValorTotal);
+
+        ViewBag.FiltroMes = filtroMes;
+        ViewBag.FiltroAno = filtroAno;
+        ViewBag.FiltroAlocacao = alocacao;
+        ViewBag.FiltroFornecedor = filtroFornecedor;
+        ViewBag.FiltroCategoria = categoriaId;
+
+        ViewBag.Compras = list.Select(c => new
+        {
+            c.Id,
+            c.DataHora,
+            c.Fornecedor,
+            c.ValorTotal,
+            c.FormaPagamento,
+            c.AlocacaoCusto,
+            c.Observacao,
+            Categoria = c.CategoriaFinanceira.Nome
+        }).ToList();
+
+        ViewBag.Totais = new
+        {
+            Geral = totalGeral,
+            BuffetFeijoada = totalBuffet,
+            ALaCarte = totalALaCarte,
+            Bebidas = totalBebidas,
+            GeralOperacional = totalGeralAloc,
+            Administrativo = totalAdministrativo
+        };
+    }
+
     public IActionResult ResumoMensal() => View();
 }

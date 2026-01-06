@@ -13,6 +13,7 @@ public class CaixaLancamentoViewModel
     public OrigemVenda? OrigemVenda { get; set; }
 
     [Required]
+    [Range(1, int.MaxValue, ErrorMessage = "Selecione uma categoria.")]
     public int CategoriaFinanceiraId { get; set; }
 
     [Required]

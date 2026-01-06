@@ -11,5 +11,6 @@ public class Compra
     public AlocacaoCusto AlocacaoCusto { get; set; }
     public int CategoriaFinanceiraId { get; set; }
     public CategoriaFinanceira CategoriaFinanceira { get; set; } = null!;
+    public int? LancamentoCaixaId { get; set; }
     public ICollection<CompraItem> Itens { get; set; } = new List<CompraItem>();
 }
