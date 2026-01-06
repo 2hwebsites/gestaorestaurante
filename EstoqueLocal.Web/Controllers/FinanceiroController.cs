@@ -29,11 +29,12 @@ public class FinanceiroController : Controller
         }
 
         var now = DateTime.Now;
+        var dataHora = vm.DataLancamento.Date.Add(now.TimeOfDay);
         var entity = new LancamentoCaixa
         {
-            DataHora = now,
-            Ano = now.Year,
-            Mes = now.Month,
+            DataHora = dataHora,
+            Ano = dataHora.Year,
+            Mes = dataHora.Month,
             Tipo = vm.Tipo,
             OrigemVenda = vm.Tipo == TipoLancamento.Entrada ? vm.OrigemVenda : null,
             CategoriaFinanceiraId = vm.CategoriaFinanceiraId,

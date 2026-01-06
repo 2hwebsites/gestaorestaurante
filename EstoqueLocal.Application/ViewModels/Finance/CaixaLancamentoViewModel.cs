@@ -8,6 +8,10 @@ public class CaixaLancamentoViewModel
     public int Id { get; set; }
 
     [Required]
+    [DataType(DataType.Date)]
+    public DateTime DataLancamento { get; set; } = DateTime.Today;
+
+    [Required]
     public TipoLancamento Tipo { get; set; }
 
     public OrigemVenda? OrigemVenda { get; set; }
